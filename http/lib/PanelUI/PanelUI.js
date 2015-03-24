@@ -157,6 +157,7 @@ PanelUI.Panel.prototype.constructor = PanelUI.Panel;
 // @method proto undefined open() -- Adds Panel's domElement to the document
 PanelUI.Panel.prototype.open = function() {
   document.body.appendChild(this.domElement);
+  this.domElement.focus();
 }
 
 // @method proto undefined close() -- Removes Panel's domElement from the document
@@ -170,6 +171,15 @@ PanelUI.Panel.prototype.close = function() {
 // @method proto Boolean isOpen() -- Returns whether panel is currently open (attached to document)
 PanelUI.Panel.prototype.isOpen = function() {
   return this.domElement.parentElement === document.body;
+}
+
+// @method proto undefined toggleOpen() -- Toggle .domElement on and off of document.body
+PanelUI.Panel.prototype.toggleOpen = function() {
+  if(this.isOpen()) {
+    this.close();
+  } else {
+    this.open();
+  }
 }
 
 if(typeof module != 'undefined' && module != null && module.exports) {
