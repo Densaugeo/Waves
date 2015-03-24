@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="lib/PanelUI/PanelUI.css">
 
 <style type='text/css'>
-canvas {
+.webgl {
   position: absolute;
   top:      0;
   bottom:   0;
@@ -29,6 +29,9 @@ canvas {
   top: 12px;
   left: 60px;
   width: 200px;
+}
+#texture {
+  width: 512px;
 }
 #settings > div > div > select,
 #settings > div > div > input {
@@ -90,10 +93,14 @@ sidebar.addButton({buttonName: 'fs'      , faClass: 'fa-arrows-alt', title: 'Ful
 sidebar.addButton({buttonName: 'contrast', faClass: 'fa-adjust'    , title: 'Flip Contrast'      });
 sidebar.addButton({buttonName: 'clear'   , faClass: 'fa-recycle'   , title: 'Clear local storage'});
 sidebar.addButton({buttonName: 'settings', faClass: 'fa-gear'      , title: 'Settings'           });
+sidebar.addButton({buttonName: 'texture' , faClass: 'fa-gear'      , title: 'Texture'            });
 
 var helpPanel = new WaveModules.HelpPanel();
 var settingsPanel = new WaveModules.SettingsPanel();
 var darkColors = document.getElementById('dark_colors');
+
+var texturePanel = new WaveModules.TexturePanel();
+
 
 ////////////
 // Events //
@@ -143,6 +150,15 @@ sidebar.on('settings', function(e) {
   }
 });
 
+sidebar.on('texture', function(e) {
+  if(texturePanel.isOpen()) {
+    texturePanel.close();
+  } else {
+    texturePanel.open();
+    texturePanel.domElement.focus();
+  }
+});
+
 ////////////////////
 // three.js setup //
 ////////////////////
@@ -154,7 +170,12 @@ var fM4 = function(options) {
 var scene = new THREE.Scene();
 
 var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100);
-camera.matrix = fM4({ty: -4, rx: 0.5*Math.PI});
+camera.matrix.set(
+  0.6262985467910767, -0.5699889063835144, -0.5318481922149658, -2.1273927688598633,
+  -0.7795830965042114, -0.45791569352149963, -0.4272744059562683, -1.7090976238250732,
+  0, 0.6822211742401123, -0.7311456799507141, -2.9245827198028564,
+  0, 0, 0, 1
+);
 scene.add(camera);
 
 var ambientLight = new THREE.AmbientLight(0x7F7F7F);
@@ -171,6 +192,7 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth - 48, window.innerHeight);
 renderer.setClearColor(0x000000, 1);
 
+renderer.domElement.className = 'webgl';
 document.body.appendChild(renderer.domElement);
 
 var controls = new THREE.Densaugeo.WaveControls(camera, renderer.domElement);
@@ -242,7 +264,7 @@ var probabilityDensities = {
 
 volume = THREE.Densaugeo.forgeObject3D(THREE.Densaugeo.VRTVolume, {
   intensity: 10,
-  dataTexture: texy = new THREE.Densaugeo.VRTTexture({
+  dataTexture: new THREE.Densaugeo.VRTTexture({
     resolution: 64,
     formula: probabilityDensities[1][0][0],
     useSpherical: true,
@@ -252,7 +274,13 @@ volume = THREE.Densaugeo.forgeObject3D(THREE.Densaugeo.VRTVolume, {
   matrix: fM4({sx: 4, sy: 4, sz: 4})
 });
 
+texturePanel.updateImage(volume.dataTexture);
+
 scene.add(volume);
+
+
+
+
 
 // Axes adjusted because three.js decided to switch to left-handed coordinates for no reason
 var lineGeometry1 = new THREE.Geometry();
@@ -285,6 +313,8 @@ settingsPanel.on('change', function(e) {
       useSpherical: true,
       matrix: fM4({sx: 2*e.radius, sy: 2*e.radius, sz: 2*e.radius}),
     });
+    
+    texturePanel.updateImage(volume.dataTexture);
   }
 });
 

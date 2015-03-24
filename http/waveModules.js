@@ -14,7 +14,7 @@ var WaveModules = {};
  * @example helpPanel.open();
  */
 WaveModules.HelpPanel = function HelpPanel() {
-  PanelUI.Panel.call(this, {id: 'help', heading: 'Controls', startOpen: false, accessKey: 'c'});
+  PanelUI.Panel.call(this, {id: 'help', heading: 'Controls', accessKey: 'c'});
   
   this.domElement.appendChild(fE('div', {}, [
     fE('text', {textContent: 'Touchscreen:'}),
@@ -49,7 +49,7 @@ WaveModules.HelpPanel.prototype.constructor = WaveModules.HelpPanel;
  * @example settingsPanel.open();
  */
 WaveModules.SettingsPanel = function SettingsPanel(options) {
-  PanelUI.Panel.call(this, {id: 'settings', heading: 'Probability Density'});
+  PanelUI.Panel.call(this, {id: 'settings', heading: 'Settings', accessKey: 's'});
   
   var self = this;
   
@@ -92,7 +92,7 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
     fE('text', {textContent: 'Shader settings:'}),
     fE('div', {}, [
       fE('text', {textContent: 'Intensity'}),
-      this.controls.intensity = fE('input', {type: 'number', value: 10}),
+      this.controls.intensity = fE('input', {type: 'number', value: 12}),
     ]),
     fE('div', {}, [
       fE('text', {textContent: 'Radius (Bohr radii)'}),
@@ -110,7 +110,7 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
   var irDefaults = {
     1: { // n
       0: { // l
-        0: {intensity: 10, radius: 2},
+        0: {intensity: 12, radius: 2},
       },
     },
     2: { // n
@@ -119,7 +119,7 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
       },
       1: { // l
         0: {intensity: 400, radius: 8},
-        1: {intensity: 400, radius: 8},
+        1: {intensity: 700, radius: 8},
       },
     },
     3: { // n
@@ -133,7 +133,7 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
       2: { // l
         0: {intensity: 5000, radius: 20},
         1: {intensity: 50000, radius: 20},
-        2: {intensity: 5000, radius: 20},
+        2: {intensity: 7000, radius: 20},
       },
     },
   }
@@ -193,3 +193,38 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
 }
 WaveModules.SettingsPanel.prototype = Object.create(PanelUI.Panel.prototype);
 WaveModules.SettingsPanel.prototype.constructor = WaveModules.SettingsPanel;
+
+/**
+ * @module WaveModules.TexturePanel inherits PanelUI.Panel
+ * @description Displays a texture
+ * 
+ * @example var helpPanel = new WaveModules.TexturePanel();
+ * @example texturePanel.updateImage(someDataTexture);
+ * @example texturePanel.open();
+ */
+WaveModules.TexturePanel = function TexturePanel() {
+  PanelUI.Panel.call(this, {id: 'texture', heading: 'Data Texture', accessKey: 't'});
+  
+  this.domElement.appendChild(fE('div', {}, [
+    this.image = fE('canvas', {width: 512, height: 512}),
+    fE('br'),
+    fE('text', {textContent: 'The sample volume is divided into horizontal slices and a 2D texture stitched together from them. The fine rectangular patterns you see are artifacts from sampling functions with radial symmetry on a rectangular grid.'}),
+  ]));
+}
+WaveModules.TexturePanel.prototype = Object.create(PanelUI.Panel.prototype);
+WaveModules.TexturePanel.prototype.constructor = WaveModules.TexturePanel;
+
+// @method proto THREE.Densaugeo.VRTTexture updateImage(THREE.Densaugeo.VRTTexture texture) -- Draws a new texture on the panel's canvas. Clears alpha values to 255 for visibility. Returns texture for daisy-chaining
+WaveModules.TexturePanel.prototype.updateImage = function(texture) {
+  var context = this.image.getContext('2d');
+  var canvasData = context.getImageData(0, 0, this.image.width, this.image.height);
+  canvasData.data.set(texture.image.data);
+  
+  for(var i = 0, endi = canvasData.data.length; i < endi; i += 4) {
+    canvasData.data[i + 3] = 255;
+  }
+  
+  context.putImageData(canvasData, 0, 0);
+  
+  return texture;
+}
