@@ -58,7 +58,6 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
   
   // @prop HTMLElement content -- Appened to .domElement
   this.content = fE('div', {}, [
-    fE('br', {}),
     fE('text', {textContent: 'Quantum numbers:'}),
     fE('div', {}, [
       fE('text', {textContent: 'Principal (n)'}),
@@ -228,3 +227,22 @@ WaveModules.TexturePanel.prototype.updateImage = function(texture) {
   
   return texture;
 }
+
+/**
+ * @module WaveModules.SourcePanel inherits PanelUI.Panel
+ * @description Gives location of repo
+ * 
+ * @example var sourcePanel = new WaveModules.SourcePanel();
+ * @example sourcePanel.open();
+ */
+WaveModules.SourcePanel = function SourcePanel() {
+  PanelUI.Panel.call(this, {id: 'source', heading: 'Source Code', accessKey: 'o'});
+  
+  this.domElement.appendChild(fE('div', {}, [
+    fE('text', {textContent: 'Source code is available on Github, under LGPL license:'}),
+    fE('br'),
+    fE('a', {href: 'https://github.com/Densaugeo/Waves', textContent: 'https://github.com/Densaugeo/Waves'}),
+  ]));
+}
+WaveModules.SourcePanel.prototype = Object.create(PanelUI.Panel.prototype);
+WaveModules.SourcePanel.prototype.constructor = WaveModules.SourcePanel;

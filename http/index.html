@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
-<title>Template - three.js</title>
+<title>Electron Clouds</title>
 
 <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="lib/PanelUI/PanelUI_light.css" id="light_colors">
@@ -82,25 +82,80 @@ var getFullscreenElement = function() {
   return document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
 }
 
+var fM4 = function(options) {
+  return new THREE.Matrix4().forge(options);
+}
+
+var f3D = THREE.Densaugeo.forgeObject3D;
+
 ///////////////
 // Instances //
 ///////////////
 
 var sidebar = new PanelUI.Sidebar();
-sidebar.addButton({buttonName: 'land'    , faClass: 'fa-university', title: 'Landing page'       });
-sidebar.addButton({buttonName: 'help'    , faClass: 'fa-question'  , title: 'Help'               });
-sidebar.addButton({buttonName: 'fs'      , faClass: 'fa-arrows-alt', title: 'Fullscreen'         });
-sidebar.addButton({buttonName: 'contrast', faClass: 'fa-adjust'    , title: 'Flip Contrast'      });
-sidebar.addButton({buttonName: 'clear'   , faClass: 'fa-recycle'   , title: 'Clear local storage'});
-sidebar.addButton({buttonName: 'settings', faClass: 'fa-gear'      , title: 'Settings'           });
-sidebar.addButton({buttonName: 'texture' , faClass: 'fa-gear'      , title: 'Texture'            });
+sidebar.addButton({buttonName: 'land'    , faClass: 'fa-university'  , title: 'Landing page'       });
+sidebar.addButton({buttonName: 'help'    , faClass: 'fa-question'    , title: 'Help'               });
+sidebar.addButton({buttonName: 'fs'      , faClass: 'fa-arrows-alt'  , title: 'Fullscreen'         });
+sidebar.addButton({buttonName: 'contrast', faClass: 'fa-adjust'      , title: 'Flip Contrast'      });
+sidebar.addButton({buttonName: 'clear'   , faClass: 'fa-recycle'     , title: 'Clear local storage'});
+sidebar.addButton({buttonName: 'settings', char   : 'Ψ'              , title: 'Settings'           });
+sidebar.addButton({buttonName: 'texture' , faClass: 'fa-file-image-o', title: 'Texture'            });
+sidebar.addButton({buttonName: 'source'  , faClass: 'fa-github'      , title: 'Source'             });
 
 var helpPanel = new WaveModules.HelpPanel();
 var settingsPanel = new WaveModules.SettingsPanel();
+var texturePanel = new WaveModules.TexturePanel();
+var sourcePanel = new WaveModules.SourcePanel();
+
 var darkColors = document.getElementById('dark_colors');
 
-var texturePanel = new WaveModules.TexturePanel();
+// Axes adjusted because three.js decided to switch to left-handed coordinates for no reason
+var lineGeometry1 = new THREE.Geometry();
+lineGeometry1.vertices.push(new THREE.Vector3(0, 0, 0));
+lineGeometry1.vertices.push(new THREE.Vector3(0, 1, 0));
+var lineGeometry2 = new THREE.Geometry();
+lineGeometry2.vertices.push(new THREE.Vector3(0, 0, 0));
+lineGeometry2.vertices.push(new THREE.Vector3(1, 0, 0));
+var lineGeometry3 = new THREE.Geometry();
+lineGeometry3.vertices.push(new THREE.Vector3(0, 0, 0));
+lineGeometry3.vertices.push(new THREE.Vector3(0, 0, 1));
 
+var axes = f3D(THREE.Object3D, {}, [
+  f3D(THREE.Line, {geometry: lineGeometry1, material: new THREE.LineBasicMaterial({color: 0xFF0000})}),
+  f3D(THREE.Line, {geometry: lineGeometry2, material: new THREE.LineBasicMaterial({color: 0x00FF00})}),
+  f3D(THREE.Line, {geometry: lineGeometry3, material: new THREE.LineBasicMaterial({color: 0x0000FF})}),
+]);
+
+var probabilityDensities = {
+  1: { // n
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/PI*exp(-2*r)},
+    },
+  },
+  2: { // n
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(32*PI)*pow((2 - r), 2)*exp(-r)},
+    },
+    1: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(32*PI)*r*r*exp(-r)*pow(cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(64*PI)*r*r*exp(-r)*pow(sin(θ), 2)},
+    },
+  },
+  3: { // n
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(81*81*3*PI)*pow(27 - 18*r + 2*r*r, 2)*exp(-r*2/3)},
+    },
+    1: { // l
+      0: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(sin(θ), 2)},
+    },
+    2: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(3*pow(cos(θ), 2) - 1, 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ)*cos(θ), 2)},
+      2: function(r, φ, θ) {with(Math) return 1/(162*162*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ), 4)},
+    },
+  },
+}
 
 ////////////
 // Events //
@@ -111,12 +166,7 @@ sidebar.on('land', function(e) {
 });
 
 sidebar.on('help', function(e) {
-  if(helpPanel.isOpen()) {
-    helpPanel.close();
-  } else {
-    helpPanel.open();
-    helpPanel.domElement.focus();
-  }
+  helpPanel.toggleOpen(true);
 });
 
 sidebar.on('fs', function(e) {
@@ -142,30 +192,47 @@ sidebar.on('clear', function(e) {
 });
 
 sidebar.on('settings', function(e) {
-  if(settingsPanel.isOpen()) {
-    settingsPanel.close();
-  } else {
-    settingsPanel.open();
-    settingsPanel.domElement.focus();
-  }
+  settingsPanel.toggleOpen(true);
 });
 
 sidebar.on('texture', function(e) {
-  if(texturePanel.isOpen()) {
-    texturePanel.close();
-  } else {
-    texturePanel.open();
-    texturePanel.domElement.focus();
+  texturePanel.toggleOpen(true);
+});
+
+settingsPanel.on('change', function(e) {
+  volume.intensity = e.intensity;
+  
+  if(e.needsRefresh) {
+    volume.dataTexture = new THREE.Densaugeo.VRTTexture({
+      resolution: 64,
+      formula: probabilityDensities[e.n][e.l][Math.abs(e.m)],
+        useSpherical: true,
+        matrix: fM4({sx: 2*e.radius, sy: 2*e.radius, sz: 2*e.radius}),
+    });
+    
+    texturePanel.updateImage(volume.dataTexture);
   }
+  
+  render();
+});
+
+settingsPanel.on('axes', function(e) {
+  if(e.value && axes.parent !== scene) {
+    scene.add(axes);
+  } else if(!e.value) {
+    scene.remove(axes);
+  }
+  
+  render();
+});
+
+sidebar.on('source', function(e) {
+  sourcePanel.toggleOpen(true);
 });
 
 ////////////////////
 // three.js setup //
 ////////////////////
-
-var fM4 = function(options) {
-  return new THREE.Matrix4().forge(options);
-}
 
 var scene = new THREE.Scene();
 
@@ -203,23 +270,25 @@ window.addEventListener("resize", function() {
   camera.updateProjectionMatrix();
   
   renderer.setSize(window.innerWidth - 48, window.innerHeight);
+  
+  render();
 });
 
-var timePrevious = Date.now(), timeDelta = 0;
-
-function tick() {
-  timeDelta = -timePrevious + (timePrevious = Date.now());
-  
+var render = function() {
   if(typeof volume !== 'undefined') {
     volume.tick(camera);
   }
   
   renderer.render(scene, camera);
+}
+
+var tick = function() {
+  if(controls.changed()) {
+    render();
+  }
   
   requestAnimationFrame(tick);
 }
-
-tick();
 
 ////////////////////
 // Initialization //
@@ -231,39 +300,8 @@ if(localStorage.contrast === 'light') {
 
 settingsPanel.open();
 
-var probabilityDensities = {
-  1: { // n
-    0: { // l
-      0: function(r, φ, θ) {with(Math) return 1/PI*exp(-2*r)},
-    },
-  },
-  2: { // n
-    0: { // l
-      0: function(r, φ, θ) {with(Math) return 1/(32*PI)*pow((2 - r), 2)*exp(-r)},
-    },
-    1: { // l
-      0: function(r, φ, θ) {with(Math) return 1/(32*PI)*r*r*exp(-r)*pow(cos(θ), 2)},
-      1: function(r, φ, θ) {with(Math) return 1/(64*PI)*r*r*exp(-r)*pow(sin(θ), 2)},
-    },
-  },
-  3: { // n
-    0: { // l
-      0: function(r, φ, θ) {with(Math) return 1/(81*81*3*PI)*pow(27 - 18*r + 2*r*r, 2)*exp(-r*2/3)},
-    },
-    1: { // l
-      0: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(cos(θ), 2)},
-      1: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(sin(θ), 2)},
-    },
-    2: { // l
-      0: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(3*pow(cos(θ), 2) - 1, 2)},
-      1: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ)*cos(θ), 2)},
-      2: function(r, φ, θ) {with(Math) return 1/(162*162*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ), 4)},
-    },
-  },
-}
-
 volume = THREE.Densaugeo.forgeObject3D(THREE.Densaugeo.VRTVolume, {
-  intensity: 10,
+  intensity: 12,
   dataTexture: new THREE.Densaugeo.VRTTexture({
     resolution: 64,
     formula: probabilityDensities[1][0][0],
@@ -278,53 +316,10 @@ texturePanel.updateImage(volume.dataTexture);
 
 scene.add(volume);
 
+// Burn initial render because first render is bugged
+render();
 
-
-
-
-// Axes adjusted because three.js decided to switch to left-handed coordinates for no reason
-var lineGeometry1 = new THREE.Geometry();
-lineGeometry1.vertices.push(new THREE.Vector3(0, 0, 0));
-lineGeometry1.vertices.push(new THREE.Vector3(0, 1, 0));
-var lineGeometry2 = new THREE.Geometry();
-lineGeometry2.vertices.push(new THREE.Vector3(0, 0, 0));
-lineGeometry2.vertices.push(new THREE.Vector3(1, 0, 0));
-var lineGeometry3 = new THREE.Geometry();
-lineGeometry3.vertices.push(new THREE.Vector3(0, 0, 0));
-lineGeometry3.vertices.push(new THREE.Vector3(0, 0, 1));
-
-var line1 = new THREE.Line(lineGeometry1, new THREE.LineBasicMaterial({color: 0xFF0000}));
-var line2 = new THREE.Line(lineGeometry2, new THREE.LineBasicMaterial({color: 0x00FF00}));
-var line3 = new THREE.Line(lineGeometry3, new THREE.LineBasicMaterial({color: 0x0000FF}));
-
-var axes = new THREE.Object3D();
-
-axes.add(line1);
-axes.add(line2);
-axes.add(line3);
-
-settingsPanel.on('change', function(e) {
-  volume.intensity = e.intensity;
-  
-  if(e.needsRefresh) {
-    volume.dataTexture = new THREE.Densaugeo.VRTTexture({
-      resolution: 64,
-      formula: probabilityDensities[e.n][e.l][Math.abs(e.m)],
-      useSpherical: true,
-      matrix: fM4({sx: 2*e.radius, sy: 2*e.radius, sz: 2*e.radius}),
-    });
-    
-    texturePanel.updateImage(volume.dataTexture);
-  }
-});
-
-settingsPanel.on('axes', function(e) {
-  if(e.value && axes.parent !== scene) {
-    scene.add(axes);
-  } else if(!e.value) {
-    scene.remove(axes);
-  }
-});
+tick();
 
 /////////////////////
 // Startup scripts //

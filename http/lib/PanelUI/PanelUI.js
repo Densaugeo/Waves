@@ -154,10 +154,13 @@ PanelUI.Panel = function Panel(options) {
 PanelUI.Panel.prototype = Object.create(EventEmitter.prototype);
 PanelUI.Panel.prototype.constructor = PanelUI.Panel;
 
-// @method proto undefined open() -- Adds Panel's domElement to the document
-PanelUI.Panel.prototype.open = function() {
+// @method proto undefined open(Boolean focus) -- Adds Panel's domElement to the document. If focus is set, also focuses .domElement
+PanelUI.Panel.prototype.open = function(focus) {
   document.body.appendChild(this.domElement);
-  this.domElement.focus();
+  
+  if(focus) {
+    this.domElement.focus();
+  }
 }
 
 // @method proto undefined close() -- Removes Panel's domElement from the document
@@ -173,12 +176,12 @@ PanelUI.Panel.prototype.isOpen = function() {
   return this.domElement.parentElement === document.body;
 }
 
-// @method proto undefined toggleOpen() -- Toggle .domElement on and off of document.body
-PanelUI.Panel.prototype.toggleOpen = function() {
+// @method proto undefined toggleOpen(Boolean focus) -- Toggle .domElement on and off of document.body
+PanelUI.Panel.prototype.toggleOpen = function(focus) {
   if(this.isOpen()) {
     this.close();
   } else {
-    this.open();
+    this.open(focus);
   }
 }
 

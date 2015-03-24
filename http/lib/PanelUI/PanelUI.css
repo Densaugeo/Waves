@@ -37,7 +37,7 @@ body {
   z-index: 4;
 }
 .panel_heading {
-  height: 24px;
+  min-height: 24px;
   margin-bottom: 6px;
   font-size: 16px;
   text-align: center;

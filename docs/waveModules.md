@@ -46,3 +46,34 @@ settingsPanel.open();
 
 **change** `{Number n, Number, l, Number m, Number intensity, Number radius, Boolean needsRefresh}` -- Emitted when a parameter is changed on this panel
 
+---
+
+## WaveModules.TexturePanel
+
+Inherits: `PanelUI.Panel`
+
+Displays a texture
+
+```
+var helpPanel = new WaveModules.TexturePanel();
+texturePanel.updateImage(someDataTexture);
+texturePanel.open();
+```
+
+#### Methods
+
+`THREE.Densaugeo.VRTTexture` proto **updateImage**`(THREE.Densaugeo.VRTTexture texture)` -- Draws a new texture on the panel's canvas. Clears alpha values to 255 for visibility. Returns texture for daisy-chaining
+
+---
+
+## WaveModules.SourcePanel
+
+Inherits: `PanelUI.Panel`
+
+Gives location of repo
+
+```
+var sourcePanel = new WaveModules.SourcePanel();
+sourcePanel.open();
+```
+

@@ -14,6 +14,16 @@ THREE.Densaugeo.WaveControls = function(camera, domElement, options) {
   
   var inputs = {}; // This particular ; really is necessary
   
+  var changed = true;
+  this.changed = function() {
+    if(changed) {
+      changed = false;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
   document.addEventListener('keydown', function(e) {
     if(!e.altKey && !e.ctrlKey && !e.shiftKey) {
       inputs[e.keyCode] = true;
@@ -77,8 +87,8 @@ THREE.Densaugeo.WaveControls = function(camera, domElement, options) {
   var TouchHandler = function(e) {
     e.preventDefault(); // Should be called at least on every touchmove event
     
-    rotateX       -= (e.touches[1].clientY - touchOnePrevious.clientY)*self.rotatationTouchSpeed;
-    rotateGlobalZ -= (e.touches[1].clientX - touchOnePrevious.clientX)*self.rotatationTouchSpeed;
+    rotateX       -= (e.touches[0].clientY - touchOnePrevious.clientY)*self.rotatationTouchSpeed;
+    rotateGlobalZ -= (e.touches[0].clientX - touchOnePrevious.clientX)*self.rotatationTouchSpeed;
     
     touchZeroPrevious = e.touches[0];
     
@@ -126,6 +136,10 @@ THREE.Densaugeo.WaveControls = function(camera, domElement, options) {
       camera.matrix.translateZ(-r);
       camera.matrix.multiplyMatrices(new THREE.Matrix4().makeRotationZ(rotateGlobalZ), camera.matrix);
       camera.matrix.translateZ(r);
+    }
+    
+    if(translateZ || rotateX || rotateGlobalZ) {
+      changed = true;
     }
     
     camera.matrixWorldNeedsUpdate = true;
