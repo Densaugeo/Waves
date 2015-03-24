@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+<title>Template - three.js</title>
+
+<link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="lib/PanelUI/PanelUI_light.css" id="light_colors">
+<link rel="stylesheet" href="lib/PanelUI/PanelUI_dark.css" id="dark_colors">
+<link rel="stylesheet" href="lib/PanelUI/PanelUI.css">
+
+<style type='text/css'>
+canvas {
+  position: absolute;
+  top:      0;
+  bottom:   0;
+  left:     48px;
+  right:    0;
+  z-index: -1;
+  padding:  0;
+  border:   none;
+  margin:   0;
+}
+
+.panel {
+  position: absolute;
+  top: 12px;
+  left: 60px;
+  width: 200px;
+}
+#settings > div > div > select,
+#settings > div > div > input {
+  position: absolute;
+  right: 0;
+  width: 50px;
+}
+</style>
+
+<script type="text/javascript">
+// Frame buster
+if(top !== self) {
+  top.location.replace(self.location.href);
+}
+</script>
+
+<script type="text/javascript" src="lib/draggabilly.pkgd.min.js"></script>
+<script type="text/javascript" src="lib/EventEmitter.min.js"></script>
+<script type="text/javascript" src="lib/PanelUI/PanelUI.js"></script>
+<script type="text/javascript" src="waveModules.js"></script>
+
+<script type="text/javascript" src="lib/three.min.js"></script>
+<script type="text/javascript" src="lib/three.Densaugeo.js"></script>
+<script type="text/javascript" src="three.Densaugeo.WaveControls.js"></script>
+<script type="text/javascript" src="three.Densaugeo.VRT.js"></script>
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+///////////////
+// Utilities //
+///////////////
+
+// Daisy-chainable HTMLElement maker
+var fE = PanelUI.forgeElement;
+
+// Shim for vendor-prefixed fullscreen API
+if(HTMLElement.prototype.requestFullscreen == null) {
+  HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.msRequestFullscreen || HTMLElement.prototype.mozRequestFullScreen || HTMLElement.prototype.webkitRequestFullscreen;
+}
+if(document.exitFullscreen == null) {
+  document.exitFullscreen = document.msExitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen;
+}
+var getFullscreenElement = function() {
+  return document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+}
+
+///////////////
+// Instances //
+///////////////
+
+var sidebar = new PanelUI.Sidebar();
+sidebar.addButton({buttonName: 'land'    , faClass: 'fa-university', title: 'Landing page'       });
+sidebar.addButton({buttonName: 'help'    , faClass: 'fa-question'  , title: 'Help'               });
+sidebar.addButton({buttonName: 'fs'      , faClass: 'fa-arrows-alt', title: 'Fullscreen'         });
+sidebar.addButton({buttonName: 'contrast', faClass: 'fa-adjust'    , title: 'Flip Contrast'      });
+sidebar.addButton({buttonName: 'clear'   , faClass: 'fa-recycle'   , title: 'Clear local storage'});
+sidebar.addButton({buttonName: 'settings', faClass: 'fa-gear'      , title: 'Settings'           });
+
+var helpPanel = new WaveModules.HelpPanel();
+var settingsPanel = new WaveModules.SettingsPanel();
+var darkColors = document.getElementById('dark_colors');
+
+////////////
+// Events //
+////////////
+
+sidebar.on('land', function(e) {
+  window.location = 'index.html';
+});
+
+sidebar.on('help', function(e) {
+  if(helpPanel.isOpen()) {
+    helpPanel.close();
+  } else {
+    helpPanel.open();
+    helpPanel.domElement.focus();
+  }
+});
+
+sidebar.on('fs', function(e) {
+  if(getFullscreenElement() == null) {
+    document.body.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+sidebar.on('contrast', function(e) {
+  if(darkColors.parentNode === document.head) {
+    document.head.removeChild(darkColors);
+    localStorage.contrast = 'light';
+  } else {
+    document.head.appendChild(darkColors);
+    localStorage.contrast = 'dark';
+  }
+});
+
+sidebar.on('clear', function(e) {
+  localStorage.clear();
+});
+
+sidebar.on('settings', function(e) {
+  if(settingsPanel.isOpen()) {
+    settingsPanel.close();
+  } else {
+    settingsPanel.open();
+    settingsPanel.domElement.focus();
+  }
+});
+
+////////////////////
+// three.js setup //
+////////////////////
+
+var fM4 = function(options) {
+  return new THREE.Matrix4().forge(options);
+}
+
+var scene = new THREE.Scene();
+
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100);
+camera.matrix = fM4({ty: -4, rx: 0.5*Math.PI});
+scene.add(camera);
+
+var ambientLight = new THREE.AmbientLight(0x7F7F7F);
+scene.add(ambientLight);
+
+// Sunlight
+var directionalLight = new THREE.DirectionalLight(0x808080);
+directionalLight.position.set(-7.1, 2.75, 10);
+scene.add(directionalLight);
+
+var loader = new THREE.Densaugeo.JSONMultiLoader();
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth - 48, window.innerHeight);
+renderer.setClearColor(0x000000, 1);
+
+document.body.appendChild(renderer.domElement);
+
+var controls = new THREE.Densaugeo.WaveControls(camera, renderer.domElement);
+
+// WebGL occupies entire browser window
+window.addEventListener("resize", function() {
+  camera.aspect = (window.innerWidth - 48)/window.innerHeight;
+  camera.updateProjectionMatrix();
+  
+  renderer.setSize(window.innerWidth - 48, window.innerHeight);
+});
+
+var timePrevious = Date.now(), timeDelta = 0;
+
+function tick() {
+  timeDelta = -timePrevious + (timePrevious = Date.now());
+  
+  if(typeof volume !== 'undefined') {
+    volume.tick(camera);
+  }
+  
+  renderer.render(scene, camera);
+  
+  requestAnimationFrame(tick);
+}
+
+tick();
+
+////////////////////
+// Initialization //
+////////////////////
+
+if(localStorage.contrast === 'light') {
+  document.head.removeChild(darkColors);
+}
+
+settingsPanel.open();
+
+var probabilityDensities = {
+  1: { // n
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/PI*exp(-2*r)},
+    },
+  },
+  2: { // n
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(32*PI)*pow((2 - r), 2)*exp(-r)},
+    },
+    1: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(32*PI)*r*r*exp(-r)*pow(cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(64*PI)*r*r*exp(-r)*pow(sin(θ), 2)},
+    },
+  },
+  3: { // n
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(81*81*3*PI)*pow(27 - 18*r + 2*r*r, 2)*exp(-r*2/3)},
+    },
+    1: { // l
+      0: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(sin(θ), 2)},
+    },
+    2: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(3*pow(cos(θ), 2) - 1, 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ)*cos(θ), 2)},
+      2: function(r, φ, θ) {with(Math) return 1/(162*162*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ), 4)},
+    },
+  },
+}
+
+volume = THREE.Densaugeo.forgeObject3D(THREE.Densaugeo.VRTVolume, {
+  intensity: 10,
+  dataTexture: texy = new THREE.Densaugeo.VRTTexture({
+    resolution: 64,
+    formula: probabilityDensities[1][0][0],
+    useSpherical: true,
+    matrix: fM4({sx: 4, sy: 4, sz: 4}),
+  }),
+  resolution: 64,
+  matrix: fM4({sx: 4, sy: 4, sz: 4})
+});
+
+scene.add(volume);
+
+// Axes adjusted because three.js decided to switch to left-handed coordinates for no reason
+var lineGeometry1 = new THREE.Geometry();
+lineGeometry1.vertices.push(new THREE.Vector3(0, 0, 0));
+lineGeometry1.vertices.push(new THREE.Vector3(0, 1, 0));
+var lineGeometry2 = new THREE.Geometry();
+lineGeometry2.vertices.push(new THREE.Vector3(0, 0, 0));
+lineGeometry2.vertices.push(new THREE.Vector3(1, 0, 0));
+var lineGeometry3 = new THREE.Geometry();
+lineGeometry3.vertices.push(new THREE.Vector3(0, 0, 0));
+lineGeometry3.vertices.push(new THREE.Vector3(0, 0, 1));
+
+var line1 = new THREE.Line(lineGeometry1, new THREE.LineBasicMaterial({color: 0xFF0000}));
+var line2 = new THREE.Line(lineGeometry2, new THREE.LineBasicMaterial({color: 0x00FF00}));
+var line3 = new THREE.Line(lineGeometry3, new THREE.LineBasicMaterial({color: 0x0000FF}));
+
+var axes = new THREE.Object3D();
+
+axes.add(line1);
+axes.add(line2);
+axes.add(line3);
+
+settingsPanel.on('change', function(e) {
+  volume.intensity = e.intensity;
+  
+  if(e.needsRefresh) {
+    volume.dataTexture = new THREE.Densaugeo.VRTTexture({
+      resolution: 64,
+      formula: probabilityDensities[e.n][e.l][Math.abs(e.m)],
+      useSpherical: true,
+      matrix: fM4({sx: 2*e.radius, sy: 2*e.radius, sz: 2*e.radius}),
+    });
+  }
+});
+
+settingsPanel.on('axes', function(e) {
+  if(e.value && axes.parent !== scene) {
+    scene.add(axes);
+  } else if(!e.value) {
+    scene.remove(axes);
+  }
+});
+
+/////////////////////
+// Startup scripts //
+/////////////////////
+
+eval(localStorage.onstart);
+
+</script>
+</html>

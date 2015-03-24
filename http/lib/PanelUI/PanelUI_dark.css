@@ -1,0 +1,47 @@
+body {
+  color: #DDD;
+  background: #000;
+}
+#background {
+  background: url('diagram-dark.jpg') no-repeat center;
+  background-size: auto 100%;
+}
+#sidebar {
+  background: #000;
+  box-shadow: 0 0 5px 3px #888;
+}
+#sidebar:hover,
+#sidebar:focus {
+  box-shadow: 0 0 5px 3px #0FF;
+}
+
+.panel {
+  background: #000;
+  box-shadow: 0 0 5px 3px #888;
+}
+.panel:hover,
+.panel:focus {
+  box-shadow: 0 0 5px 3px #0FF;
+}
+.panel_close {
+  background: rgba(0, 0, 0, 0.75);
+}
+.panel_heading {
+  color: #AFF;
+}
+
+.button:hover {
+  color: #0FF;
+}
+.button:active {
+  color: #0F0;
+}
+.button:focus {
+  outline: 1px solid #0FF;
+}
+
+.well {
+  border: 1px solid #888;
+  background-image: linear-gradient(to bottom, rgba(96, 96, 96, 0.3) 0px, rgba(0, 0, 0, 0.3) 100%);
+  box-shadow: 0px 0px 2px #888 inset;
+}

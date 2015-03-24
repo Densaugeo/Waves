@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+<title>Template - three.js</title>
+
+<link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="lib/PanelUI/PanelUI_light.css" id="light_colors">
+<link rel="stylesheet" href="lib/PanelUI/PanelUI_dark.css" id="dark_colors">
+<link rel="stylesheet" href="lib/PanelUI/PanelUI.css">
+
+<style type='text/css'>
+canvas {
+  position: absolute;
+  top:      0;
+  bottom:   0;
+  left:     48px;
+  right:    0;
+  z-index: -1;
+  padding:  0;
+  border:   none;
+  margin:   0;
+}
+
+.panel {
+  width: 300px;
+  margin-bottom: 12px;
+}
+
+#help {
+  position: absolute;
+  top: 12px;
+  left: 60px;
+}
+</style>
+
+<script type="text/javascript">
+// Frame buster
+if(top !== self) {
+  top.location.replace(self.location.href);
+}
+</script>
+
+<script type="text/javascript" src="lib/draggabilly.pkgd.min.js"></script>
+<script type="text/javascript" src="lib/EventEmitter.min.js"></script>
+<script type="text/javascript" src="lib/PanelUI/PanelUI.js"></script>
+
+<script type="text/javascript" src="lib/three.min.js"></script>
+<script type="text/javascript" src="lib/three.Densaugeo.js"></script>
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+///////////////
+// Utilities //
+///////////////
+
+// Daisy-chainable HTMLElement maker
+var fE = PanelUI.forgeElement;
+
+// Shim for vendor-prefixed fullscreen API
+if(HTMLElement.prototype.requestFullscreen == null) {
+  HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.msRequestFullscreen || HTMLElement.prototype.mozRequestFullScreen || HTMLElement.prototype.webkitRequestFullscreen;
+}
+if(document.exitFullscreen == null) {
+  document.exitFullscreen = document.msExitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen;
+}
+var getFullscreenElement = function() {
+  return document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+}
+
+///////////////
+// Instances //
+///////////////
+
+var sidebar = new PanelUI.Sidebar();
+sidebar.addButton({buttonName: 'land'    , faClass: 'fa-university', title: 'Landing page'       });
+sidebar.addButton({buttonName: 'help'    , faClass: 'fa-question'  , title: 'Help'               });
+sidebar.addButton({buttonName: 'fs'      , faClass: 'fa-arrows-alt', title: 'Fullscreen'         });
+sidebar.addButton({buttonName: 'contrast', faClass: 'fa-adjust'    , title: 'Flip Contrast'      });
+sidebar.addButton({buttonName: 'clear'   , faClass: 'fa-recycle'   , title: 'Clear local storage'});
+
+var helpPanel = new PanelUI.Panel({id: 'help', heading: 'A Panel That Could Be Helpful'});
+helpPanel.domElement.appendChild(fE('div', {textContent: 'Controls work with gamepads and touchscreens too - try wasdec, arrows, one- and two-finger touch, and touch and hold the right side of the screen while tilting.'}));
+
+var darkColors = document.getElementById('dark_colors');
+
+////////////
+// Events //
+////////////
+
+sidebar.on('land', function(e) {
+  window.location = 'index.html';
+});
+
+sidebar.on('help', function(e) {
+  if(helpPanel.isOpen()) {
+    helpPanel.close();
+  } else {
+    helpPanel.open();
+    helpPanel.domElement.focus();
+  }
+});
+
+sidebar.on('fs', function(e) {
+  if(getFullscreenElement() == null) {
+    document.body.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+sidebar.on('contrast', function(e) {
+  if(darkColors.parentNode === document.head) {
+    document.head.removeChild(darkColors);
+    localStorage.contrast = 'light';
+  } else {
+    document.head.appendChild(darkColors);
+    localStorage.contrast = 'dark';
+  }
+});
+
+sidebar.on('clear', function(e) {
+  localStorage.clear();
+});
+
+////////////////////
+// three.js setup //
+////////////////////
+
+var scene = new THREE.Scene();
+
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
+camera.matrix.set(
+  0.7071067690849304, 0.5325389504432678, -0.46519187092781067, -8,
+  -0.7071067690849304, 0.5325389504432678, -0.46519187092781067, -8,
+  0, 0.657880425453186, 0.7531238198280334, 17,
+  0, 0, 0, 1
+);
+scene.add(camera);
+
+var ambientLight = new THREE.AmbientLight(0x7F7F7F);
+scene.add(ambientLight);
+
+// Sunlight
+var directionalLight = new THREE.DirectionalLight(0x808080);
+directionalLight.position.set(-7.1, 2.75, 10);
+scene.add(directionalLight);
+
+var loader = new THREE.Densaugeo.JSONMultiLoader();
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth - 48, window.innerHeight);
+renderer.setClearColor(0xC0C0C0, 1);
+
+document.body.appendChild(renderer.domElement);
+
+var controls = new THREE.Densaugeo.FreeControls(camera, renderer.domElement);
+
+// WebGL occupies entire browser window
+window.addEventListener("resize", function() {
+  camera.aspect = (window.innerWidth - 48)/window.innerHeight;
+  camera.updateProjectionMatrix();
+  
+  renderer.setSize(window.innerWidth - 48, window.innerHeight);
+});
+
+var timePrevious = Date.now(), timeDelta = 0;
+
+function tick() {
+  timeDelta = -timePrevious + (timePrevious = Date.now());
+  
+  //if(water.material.tick) water.material.tick(timeDelta/1000);
+  
+  renderer.render(scene, camera);
+  
+  requestAnimationFrame(tick);
+}
+
+tick();
+
+////////////////////
+// Initialization //
+////////////////////
+
+if(localStorage.contrast === 'light') {
+  document.head.removeChild(darkColors);
+}
+
+
+
+
+
+THREE.Densaugeo.VRTMaterial = function(/*Object*/ options) {
+  THREE.ShaderMaterial.call(this);
+  
+  this.type = 'VRTMaterial';
+  
+  this.vertexShader   = THREE.ShaderLib.VRT.vertexShader;
+  this.fragmentShader = THREE.ShaderLib.VRT.fragmentShader;
+  this.transparent = true;
+  this.alpha = 0.8
+  this.sunDirection = new THREE.Vector3(4, 4, 10);
+  this.ambient  = new THREE.Color(0x050A14);
+  this.diffuse  = new THREE.Color(0x193366);
+  this.specular = new THREE.Color(0x193366);
+  
+  this.uniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.VRT.uniforms);
+  this.uniforms.normalSampler.value = THREE.ImageUtils.loadTexture('lib/waternormals.jpg');
+  this.uniforms.normalSampler.value.wrapS = this.uniforms.normalSampler.value.wrapT = THREE.RepeatWrapping;
+  
+  this.setValues(options);
+  this.updateUniforms();
+}
+THREE.Densaugeo.VRTMaterial.prototype = Object.create(THREE.ShaderMaterial.prototype);
+THREE.Densaugeo.VRTMaterial.prototype.constructor = THREE.Densaugeo.VRTMaterial;
+
+THREE.Densaugeo.VRTMaterial.prototype.updateUniforms = function(values) {
+  this.uniforms.alpha.value = this.alpha;
+  this.uniforms.sunDirection.value.copy(this.sunDirection).normalize();
+  this.uniforms.ambient.value.fromColor(this.ambient);
+  this.uniforms.diffuse.value.fromColor(this.diffuse);
+  this.uniforms.specular.value.fromColor(this.specular);
+}
+
+THREE.Densaugeo.VRTMaterial.prototype.tick = function(seconds) {
+  this.uniforms.time.value += seconds;
+}
+
+THREE.ShaderLib.VRT = {
+  uniforms: {
+    normalSampler: {type: 't', value: null},
+    time         : {type: 'f', value: 0},
+    alpha        : {type: 'f', value: 0},
+    sunDirection: {type: 'v3', value: new THREE.Vector3()},
+    ambient     : {type: 'v3', value: new THREE.Vector3()},
+    diffuse     : {type: 'v3', value: new THREE.Vector3()},
+    specular    : {type: 'v3', value: new THREE.Vector3()},
+  },
+  
+  vertexShader: [
+   'varying vec3 worldPosition;',
+    
+   'void main() {',
+     'worldPosition = vec3(modelMatrix*vec4(position,1.0));',
+      
+     'gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);',
+   '}'
+  ].join('\n'),
+  
+  fragmentShader: [
+   'uniform sampler2D normalSampler;',
+   'uniform float time;',
+   'uniform float alpha;',
+   'uniform vec3 sunDirection;',
+   'uniform vec3 ambient;',
+   'uniform vec3 diffuse;',
+   'uniform vec3 specular;',
+    
+   'varying vec3 worldPosition;',
+    
+   'vec4 getNoise(vec2 uv) {',
+     'vec2 uv0 = (uv/51.5)+vec2(time/17.0, time/29.0);',
+     'vec2 uv1 = uv/53.5-vec2(time/-19.0, time/31.0);',
+     'vec2 uv2 = uv/vec2(448.5, 491.5)+vec2(time/101.0, time/97.0);',
+     'vec2 uv3 = uv/vec2(495.5, 438.5)-vec2(time/109.0, time/-113.0);',
+     'vec4 noise = (texture2D(normalSampler, uv0)) +',
+     '(texture2D(normalSampler, uv1)) +',
+     '(texture2D(normalSampler, uv2)) +',
+     '(texture2D(normalSampler, uv3));',
+     'return noise*0.5-1.0;',
+   '}',
+    
+   'void main() {',
+     'vec4 noise = getNoise(worldPosition.xy);',
+     'vec3 surfaceNormal = normalize(noise.xyz*vec3(1.0, 1.0, 2.0));',
+      
+     'float diffuseMag = max(dot(sunDirection, surfaceNormal),0.0);',
+      
+     'vec3 eyeDirection = normalize(cameraPosition - worldPosition);',
+     'vec3 reflection = normalize(reflect(-sunDirection, surfaceNormal));',
+     'float direction = max(0.0, dot(eyeDirection, reflection));',
+     'float specularMag = pow(direction, 100.0)*4.0;',
+      
+     '//gl_FragColor = vec4(ambient + diffuse*diffuseMag + specular*specularMag, alpha);',
+     'gl_FragColor = texture2D(normalSampler, vec2(worldPosition.x/4.0, worldPosition.y/4.0));',
+   '}'
+  ].join('\n'),
+}
+
+
+
+
+
+
+
+
+
+
+// Generate a data set
+var dataset = new Uint8Array(262144);
+
+var dataTexture = THREE.ImageUtils.generateDataTexture(512, 512, 0x000000);
+
+// Bohr radius in graphical units
+var a0 = 1;
+
+var xLength = 8, yLength = 8, zLength = 8;
+
+var maxProbabilityDensity = 1/(Math.PI*Math.pow(a0, 3));
+
+for(var i = 0, endi = 64; i < endi; ++i) {
+  for(var j = 0, endj = 64; j < endj; ++j) {
+    for(var k = 0, endk = 64; k < endk; ++k) {
+      // Convert to rectangular coordinates with Bohr units
+      var x = (i - 31.5)/63*xLength/a0;
+      var y = (j - 31.5)/63*yLength/a0;
+      var z = (k - 31.5)/63*zLength/a0;
+      
+      // r is in Bohr radii
+      var r = Math.sqrt(x*x + y*y + z*z);
+      var θ = Math.atan2(y/x);
+      var φ = Math.acos(z/r);
+      
+      //var density = 1/(Math.PI*Math.pow(a0, 3))*Math.exp(-2*r);
+      
+      //density *= 100;
+      
+      //dataTexture.image.data[Math.floor(k/8)*512*64 + (k % 8)*64 +  + j*512 + i] = density;
+      
+      var density = 1/(Math.PI*Math.pow(a0, 3))*Math.exp(-2*r);
+      
+      density *= 16777215/maxProbabilityDensity;
+      
+      dataTexture.image.data[3*(Math.floor(k/8)*512*64 + (k % 8)*64 +  + j*512 + i)] = density/65536;
+      dataTexture.image.data[3*(Math.floor(k/8)*512*64 + (k % 8)*64 +  + j*512 + i) + 1] = density/256;
+      dataTexture.image.data[3*(Math.floor(k/8)*512*64 + (k % 8)*64 +  + j*512 + i) + 2] = density;
+    }
+  }
+}
+
+
+/*for(var i = 0, endi = 512; i < endi; ++i) {
+  for(var j = 0, endj = 512; j < endj; ++j) {
+    dataTexture.image.data[3*(j*512 + i)] = i/3;
+  }
+}*/
+
+
+
+
+// Put stuff in scene
+var fM4 = function(options) {
+  return new THREE.Matrix4().forge(options);
+}
+
+scene.add(floor = THREE.Densaugeo.forgeObject3D(THREE.Mesh, {geometry: new THREE.PlaneGeometry(16, 16, 1, 1), material: new THREE.MeshLambertMaterial({color: 0x0060C0})}));
+
+scene.add(volume = THREE.Densaugeo.forgeObject3D(THREE.Mesh, {
+  geometry: new THREE.CubeGeometry(8, 8, 8),
+  material: new THREE.Densaugeo.VRTMaterial(),
+  matrix: fM4({tz: 4})
+}));
+
+
+
+volume.material.uniforms.normalSampler.value = dataTexture;
+volume.material.uniforms.normalSampler.value.wrapS = volume.material.uniforms.normalSampler.value.wrapT = THREE.RepeatWrapping;
+
+
+
+
+///////////////
+// WebSocket //
+///////////////
+
+/*var ws =  new WebSocket('ws://' + window.location.host);
+
+ws.onmessage = function(e) {
+  console.log('Received message: ' + e.data);
+  console.log(e);
+}*/
+
+/////////////////////
+// Startup scripts //
+/////////////////////
+
+eval(localStorage.onstart);
+
+</script>
+</html>

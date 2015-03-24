@@ -1,0 +1,59 @@
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+}
+#background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 48px;
+  right: 0;
+  z-index: -1;
+}
+#sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 36px;
+  z-index: 2;
+  padding: 6px;
+  outline: 0;
+}
+
+.panel {
+  position: absolute;
+  min-height: 24px;
+  z-index: 1;
+  padding: 6px;
+  outline: 0;
+}
+.panel:hover,
+.panel:focus {
+  z-index: 3;
+}
+.panel.is-dragging {
+  z-index: 4;
+}
+.panel_heading {
+  text-align: center;
+}
+.panel_close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.button {
+  width: 24px;
+  margin: 6px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.well {
+  padding: 0 19px;
+  border-radius: 4px;
+}
