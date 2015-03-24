@@ -55,12 +55,14 @@ PanelUI.Sidebar = function Sidebar() {
     options = options || {};
     
     var element = fE('i', {
-      className : 'fa ' + 'button ' + (options.faClass || 'fa-question'),
-      title     : (options.title || 'Not yet described') + '\n\nKey: ' + buttonIndicesToKeyChars[children.length],
-      tabIndex  : 0,
+      className  : 'fa ' + 'button ' + (options.faClass || ''),
+      textContent: options.char || '',
+      title      : (options.title || 'Not yet described') + '\n\nKey: ' + buttonIndicesToKeyChars[children.length],
+      tabIndex   : 0,
     });
     
     element.addEventListener('click', function(/*Event*/ e) {
+      domElement.focus();
       emit('trigger', {buttonName: options.buttonName});
       emit(options.buttonName);
     });

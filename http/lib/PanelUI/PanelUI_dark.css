@@ -30,14 +30,13 @@ body {
   color: #AFF;
 }
 
-.button:hover {
-  color: #0FF;
-}
-.button:active {
-  color: #0F0;
-}
+.button:hover,
 .button:focus {
-  outline: 1px solid #0FF;
+  color: #0FF;
+  outline: none;
+}
+.button:focus:active {
+  color: #0F0;
 }
 
 .well {
