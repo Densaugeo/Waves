@@ -143,19 +143,44 @@ var probabilityDensities = {
   },
   3: { // n
     0: { // l
-      0: function(r, φ, θ) {with(Math) return 1/(81*81*3*PI)*pow(27 - 18*r + 2*r*r, 2)*exp(-r*2/3)},
+      0: function(r, φ, θ) {with(Math) return 1/(19683*PI)*pow(27 - 18*r + 2*r*r, 2)*exp(-r*2/3)},
     },
     1: { // l
-      0: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(cos(θ), 2)},
-      1: function(r, φ, θ) {with(Math) return 2/(81*81*PI)*pow(6 - r, 2)*r*r*exp(-r*2/3)*pow(sin(θ), 2)},
+      0: function(r, φ, θ) {with(Math) return 1/(1458*PI)*pow(4 - r*2/3, 2)*r*r*exp(-r*2/3)*pow(cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(2916*PI)*pow(4 - r*2/3, 2)*r*r*exp(-r*2/3)*pow(sin(θ), 2)}, //*
     },
     2: { // l
-      0: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(3*pow(cos(θ), 2) - 1, 2)},
-      1: function(r, φ, θ) {with(Math) return 1/(81*81*6*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ)*cos(θ), 2)},
-      2: function(r, φ, θ) {with(Math) return 1/(162*162*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ), 4)},
+      0: function(r, φ, θ) {with(Math) return 1/(39366*PI)*pow(r, 4)*exp(-r*2/3)*pow(3*pow(cos(θ), 2) - 1, 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(6561*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ)*cos(θ), 2)}, //*
+      2: function(r, φ, θ) {with(Math) return 1/(26244*PI)*pow(r, 4)*exp(-r*2/3)*pow(sin(θ), 4)},
+    },
+  },
+  4: { // n NOTE: n=4 normalization constants are not exact
+    0: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(2359295*PI)*pow(192 - 144*r + 24*r*r - r*r*r, 2)*exp(-r/2)},
+    },
+    1: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(1310722*PI)*pow(80 - 20*r + r*r, 2)*r*r*exp(-r/2)*pow(cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(2621436*PI)*pow(80 - 20*r + r*r, 2)*r*r*exp(-r/2)*pow(sin(θ), 2)},
+    },
+    2: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(2359295*PI)*pow(6 - 0.5*r, 2)*pow(r, 4)*exp(-r/2)*pow(3*pow(cos(θ), 2) - 1, 2)},
+      1: function(r, φ, θ) {with(Math) return 1/( 393215*PI)*pow(6 - 0.5*r, 2)*pow(r, 4)*exp(-r/2)*pow(sin(θ)*cos(θ), 2)},
+      2: function(r, φ, θ) {with(Math) return 1/(1572863*PI)*pow(6 - 0.5*r, 2)*pow(r, 4)*exp(-r/2)*pow(sin(θ), 4)},
+    },
+    3: { // l
+      0: function(r, φ, θ) {with(Math) return 1/(47185943*PI)*pow(r, 6)*exp(-r/2)*pow(5*pow(cos(θ), 3) - 3*cos(θ), 2)},
+      1: function(r, φ, θ) {with(Math) return 1/(62914541*PI)*pow(r, 6)*exp(-r/2)*pow(sin(θ), 2)*pow(5*pow(cos(θ), 2) - 1, 2)},
+      2: function(r, φ, θ) {with(Math) return 1/(53846162*PI)*pow(r, 6)*exp(-r/2)*pow(sin(θ), 4)*pow(cos(θ), 2)},
+      3: function(r, φ, θ) {with(Math) return 1/(37748713*PI)*pow(r, 6)*exp(-r/2)*pow(sin(θ), 6)},
     },
   },
 }
+
+// For finding all those formulas in Wolfram Alpha
+// var generalFormula = '(2/_n)^1.5 * sqrt((_n - _l - 1)!/(2*_n*(_n + _l)!)) * exp(-r/_n) * (2r/_n)^_l * Laguerre(_n - _l - 1, 2*_l + 1, 2r/_n) * SphericalHarmonicY(_l, _m, θ, Φ)';
+// generalFormula.replace(/_n/g, 1).replace(/_l/g, 0).replace(/_m/g, 0);
+
 
 ////////////
 // Events //

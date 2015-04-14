@@ -65,6 +65,7 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
         fE('option', {textContent: 1, value: 1}),
         fE('option', {textContent: 2, value: 2}),
         fE('option', {textContent: 3, value: 3}),
+        fE('option', {textContent: 4, value: 4}),
       ]),
     ]),
     fE('div', {}, [
@@ -73,16 +74,19 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
         fE('option', {textContent: 0, value: 0}),
         fE('option', {textContent: 1, value: 1}),
         fE('option', {textContent: 2, value: 2}),
+        fE('option', {textContent: 3, value: 3}),
       ]),
     ]),
     fE('div', {}, [
       fE('text', {textContent: 'Magnetic (m)'}),
       this.controls.magnetic = fE('select', {}, [
+        fE('option', {textContent: -3, value: -3}),
         fE('option', {textContent: -2, value: -2}),
         fE('option', {textContent: -1, value: -1}),
         fE('option', {textContent: 0, value: 0, selected: true}),
         fE('option', {textContent: 1, value: 1}),
         fE('option', {textContent: 2, value: 2}),
+        fE('option', {textContent: 3, value: 3}),
       ]),
     ]),
     this.warning = fE('text', {textContent: ''}),
@@ -127,12 +131,32 @@ WaveModules.SettingsPanel = function SettingsPanel(options) {
       },
       1: { // l
         0: {intensity: 5000, radius: 20},
-        1: {intensity: 3000, radius: 20},
+        1: {intensity: 7000, radius: 20},
       },
       2: { // l
         0: {intensity: 5000, radius: 20},
-        1: {intensity: 50000, radius: 20},
+        1: {intensity: 7000, radius: 20},
         2: {intensity: 7000, radius: 20},
+      },
+    },
+    4: { // n
+      0: { // l
+        0: {intensity: 40000, radius: 40},
+      },
+      1: { // l
+        0: {intensity: 25000, radius: 40},
+        1: {intensity: 40000, radius: 40},
+      },
+      2: { // l
+        0: {intensity: 30000, radius: 40},
+        1: {intensity: 40000, radius: 40},
+        2: {intensity: 40000, radius: 40},
+      },
+      3: { // l
+        0: {intensity: 30000, radius: 40},
+        1: {intensity: 40000, radius: 40},
+        2: {intensity: 400000, radius: 40},
+        3: {intensity: 40000, radius: 40},
       },
     },
   }
