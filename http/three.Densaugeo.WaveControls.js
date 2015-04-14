@@ -37,9 +37,16 @@ THREE.Densaugeo.WaveControls = function(camera, domElement, options) {
   // FF doesn't support standard mousewheel event
   document.addEventListener('mousewheel', function(e) {
     camera.matrix.translateZ(-e.wheelDelta*self.dollySpeed/360);
+    
+    changed = true;
+    camera.matrixWorldNeedsUpdate = true;
   });
+  
   document.addEventListener('DOMMouseScroll', function(e) {
     camera.matrix.translateZ(e.detail*self.dollySpeed/3);
+    
+    changed = true;
+    camera.matrixWorldNeedsUpdate = true;
   });
   
   // Context menu interferes with mouse control
