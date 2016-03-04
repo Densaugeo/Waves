@@ -1,0 +1,23 @@
+{
+  "name": "waves",
+  "version": "0.1.0",
+  "engines": {},
+  "description": "Wave function visualization in WebGL",
+  "main": "http/index.html",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Densaugeo/Waves"
+  },
+  "keywords": [],
+  "author": "Densaugeo",
+  "license": "LGPL-2.1+",
+  "dependencies": {},
+  "devDependencies": {},
+  "files": [
+    "docs",
+    "http",
+    "LICENSE",
+    "README.md"
+  ]
+}
